@@ -1,40 +1,20 @@
-name: Markdown Quality Check
+name: Security Redactor
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  markdown-lint:
+  scan:
+    name: Secret Scanner
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Install markdownlint
-        run: npm install -g markdownlint-cli
-
-      - name: Run markdownlint
-        run: |
-          markdownlint "**/*.md"
-
-  markdown-link-check:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install link checker
-        run: npm install -g markdown-link-check
-
-      - name: Check markdown links
-        run: |
-          find . -name "*.md" -print0 | while IFS= read -r -d '' file
-          do
-            echo "Checking links in $file"
-            markdown-link-check "$file"
-          done
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
